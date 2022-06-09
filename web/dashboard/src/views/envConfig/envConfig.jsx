@@ -39,6 +39,7 @@ class EnvConfig extends Component {
       hasFormValidationError: false,
       defaultAppName: defaultAppName,
       appName: defaultAppName,
+      envConfigsFromRedux: reduxState.envConfigs,
 
       values: envConfig ? Object.assign({}, envConfig) : undefined,
       nonDefaultValues: envConfig ? Object.assign({}, envConfig) : undefined,
@@ -56,6 +57,7 @@ class EnvConfig extends Component {
         chartSchema: reduxState.chartSchema,
         chartUISchema: reduxState.chartUISchema,
         fileInfos: reduxState.fileInfos,
+        envConfigsFromRedux: reduxState.envConfigs,
       });
 
       if (!this.state.values || JSON.stringify(this.state.defaultState) === "{}") {
@@ -91,6 +93,13 @@ class EnvConfig extends Component {
     const { owner, repo, env } = this.props.match.params;
     const repoName = `${owner}/${repo}`;
     const { gimletClient, store } = this.props;
+
+    if (JSON.stringify(this.state.defaultState) === "{}") {
+      this.setState({
+        values: Object.values(Object.values(this.state.envConfigsFromRedux)[0])[0][0].values,
+        nonDefaultValues: Object.values(Object.values(this.state.envConfigsFromRedux)[0])[0][0].values,
+      });
+    }
 
     gimletClient.getChartSchema(owner, repo, env)
       .then(data => {
