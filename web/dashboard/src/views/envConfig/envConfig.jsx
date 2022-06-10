@@ -42,7 +42,7 @@ class EnvConfig extends Component {
 
       values: envConfig ? Object.assign({}, envConfig) : undefined,
       nonDefaultValues: envConfig ? Object.assign({}, envConfig) : undefined,
-      defaultState: Object.assign({}, envConfig),
+      defaultState: envConfig ? Object.assign({}, envConfig) : undefined,
     };
 
     this.props.store.subscribe(() => {
@@ -58,12 +58,32 @@ class EnvConfig extends Component {
         fileInfos: reduxState.fileInfos,
       });
 
-      if (!this.state.values || JSON.stringify(this.state.defaultState) === "{}") {
+      if (!this.state.values) {
         this.setState({
           values: envConfig ? Object.assign({}, envConfig) : undefined,
           nonDefaultValues: envConfig ? Object.assign({}, envConfig) : undefined,
           defaultState: envConfig ? Object.assign({}, envConfig) : undefined,
         });
+      }
+
+      if (!!this.state.defaultState) {
+        if (!this.state.defaultState.gitSha) {
+          this.props.gimletClient.getRepoMetas(owner, repo)
+            .then(data => {
+              if (data.githubActions) {
+                this.setGitSha("{{ .GITHUB_SHA }}");
+              }
+    
+              if (data.circleCi) {
+                this.setGitSha("{{ .CIRCLE_SHA1 }}");
+              }
+            }, () => {/* Generic error handler deals with it */
+            });
+        }
+    
+        if (!this.state.defaultState.gitRepository) {
+          this.setGitRepository(repoName);
+        }
       }
 
       if (!this.state.namespace) {
@@ -89,7 +109,6 @@ class EnvConfig extends Component {
 
   componentDidMount() {
     const { owner, repo, env } = this.props.match.params;
-    const repoName = `${owner}/${repo}`;
     const { gimletClient, store } = this.props;
 
     gimletClient.getChartSchema(owner, repo, env)
@@ -116,24 +135,6 @@ class EnvConfig extends Component {
 
     if (!this.state.appName) {
       this.setState({ appName: repo })
-    }
-
-    if (!this.state.defaultState.gitSha) {
-      this.props.gimletClient.getRepoMetas(owner, repo)
-        .then(data => {
-          if (data.githubActions) {
-            this.setGitSha("{{ .GITHUB_SHA }}");
-          }
-
-          if (data.circleCi) {
-            this.setGitSha("{{ .CIRCLE_SHA1 }}");
-          }
-        }, () => {/* Generic error handler deals with it */
-        });
-    }
-
-    if (!this.state.defaultState.gitRepository) {
-      this.setGitRepository(repoName);
     }
   }
 
