@@ -168,6 +168,20 @@ func Test_sealed(t *testing.T) {
 }
 
 func Test_jsonpath(t *testing.T) {
+	data := `
+envs:
+  staging:
+    - name: my-app
+      sealedSecrets:
+        secret1: value1
+        secret2: value2
+  production:
+    - name: my-app
+      sealedSecrets:
+        secret1: prod1
+        secret2: prod2
+`
+
 	var parsed map[string]interface{}
 	err := yaml.Unmarshal([]byte(data), &parsed)
 	if err != nil {
@@ -185,19 +199,16 @@ func Test_jsonpath(t *testing.T) {
 	}
 }
 
-const data = `
-envs:
-  staging:
-    - name: my-app
-      sealedSecrets:
-        secret1: value1
-        secret2: value2
-  production:
-    - name: my-app
-      sealedSecrets:
-        secret1: prod1
-        secret2: prod2
-`
+func Test_sealFile(t *testing.T) {
+	g := goblin.Goblin(t)
+
+	g.Describe("gimlet seal file", func() {
+		g.It("should keep field order", func() {
+			// toSeal := ``
+			g.Assert("fisk").Equal("ikke fisk")
+		})
+	})
+}
 
 // If a raw secret (without base64 encoding) starts with a char sequence that is a valid BigEndian encoded 16bit int
 // and the raw secret is long enough, then we could falsely identify it as a valid sealed secret.
