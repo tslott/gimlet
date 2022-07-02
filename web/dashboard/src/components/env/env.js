@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { v4 as uuidv4 } from 'uuid';
 import ServiceDetail from "../serviceDetail/serviceDetail";
 
 export class Env extends Component {
@@ -11,7 +12,7 @@ export class Env extends Component {
   }
 
   render() {
-    const { searchFilter, envName, env, repoRolloutHistory, envConfigs, navigateToConfigEdit, rollback, owner, repoName, fileInfos } = this.props;
+    const { searchFilter, envName, env, repoRolloutHistory, envConfigs, navigateToConfigEdit, newConfig, rollback, owner, repoName, fileInfos } = this.props;
 
     const renderedServices = renderServices(env.stacks, envConfigs, envName, repoRolloutHistory, navigateToConfigEdit, rollback, owner, repoName, fileInfos);
 
@@ -47,10 +48,21 @@ export class Env extends Component {
           </svg>
         </h4>
         {this.state.isClosed ? null : (
-          <div className="bg-white shadow divide-y divide-gray-200 p-4 sm:p-6 lg:p-8">
+          <div className="bg-white shadow p-4 sm:p-6 lg:p-8">
             {renderedServices.length > 0
-              ? renderedServices
-              : emptyState(searchFilter, envConfigs, navigateToConfigEdit, envName, repoName)}
+              ?
+              <>
+                {renderedServices}
+                <h4 className="text-xs cursor-pointer text-gray-500 hover:text-gray-700"
+                onClick={() => {
+                  const newAppName = `${repoName}-${uuidv4().slice(0,4)}`
+                  newConfig(envName, newAppName)
+                }}>
+                  Add app config
+                </h4>
+              </>
+              : emptyState(searchFilter, envConfigs, newConfig, envName, repoName)}
+
           </div>
         )}
       </div>
@@ -132,12 +144,12 @@ function appRolloutHistory(envName, appName, repoRolloutHistory) {
   return []
 }
 
-function emptyState(searchFilter, envConfigs, navigateToConfigEdit, envName, repoName) {
+function emptyState(searchFilter, envConfigs, newConfig, envName, repoName) {
   if (searchFilter !== '') {
     return emptyStateSearch()
   } else {
     if (!envConfigs) {
-      return emptyStateDeployThisRepo(navigateToConfigEdit, envName, repoName);
+      return emptyStateDeployThisRepo(newConfig, envName, repoName);
     }
   }
 }
@@ -146,11 +158,13 @@ function emptyStateSearch() {
   return <p className="text-xs text-gray-800">No service matches the search</p>
 }
 
-function emptyStateDeployThisRepo(navigateToConfigEdit, envName, repoName) {
+function emptyStateDeployThisRepo(newConfig, envName, repoName) {
   return <div
     target="_blank"
     rel="noreferrer"
-    onClick={() => navigateToConfigEdit(envName, repoName)}
+    onClick={() => {
+      newConfig(envName, repoName)
+    }}
     className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-6 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
   >
     <svg
