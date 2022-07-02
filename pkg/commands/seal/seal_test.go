@@ -168,20 +168,6 @@ func Test_sealed(t *testing.T) {
 }
 
 func Test_jsonpath(t *testing.T) {
-	data := `
-envs:
-  staging:
-    - name: my-app
-      sealedSecrets:
-        secret1: value1
-        secret2: value2
-  production:
-    - name: my-app
-      sealedSecrets:
-        secret1: prod1
-        secret2: prod2
-`
-
 	var parsed map[string]interface{}
 	err := yaml.Unmarshal([]byte(data), &parsed)
 	if err != nil {
@@ -198,6 +184,20 @@ envs:
 		t.Error(err)
 	}
 }
+
+const data = `
+envs:
+  staging:
+    - name: my-app
+      sealedSecrets:
+        secret1: value1
+        secret2: value2
+  production:
+    - name: my-app
+      sealedSecrets:
+        secret1: prod1
+        secret2: prod2
+`
 
 func Test_sealFile(t *testing.T) {
 	g := goblin.Goblin(t)
